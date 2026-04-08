@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz · Derecho Administrativo · Clase 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bordo:   #6B1C2B;
+    --bordo2:  #8B2535;
+    --bordo3:  #3D0A14;
+    --crema:   #F5F0E8;
+    --crema2:  #EDE5D6;
+    --crema3:  #DDD5C5;
+    --dorado:  #B8973A;
+    --dorado2: #9A7D30;
+    --negro:   #1A1A1A;
+    --gris:    #5A5245;
+    --ok:      #2D6A3F;
+    --ok2:     #EAF3DE;
+    --err:     #A32D2D;
+    --err2:    #FCEBEB;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--crema);
+    color: var(--negro);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  /* ── PANTALLAS ─────────────────────────────── */
+  .screen { display: none; width: 100%; max-width: 680px; animation: fadeIn .35s ease; }
+  .screen.active { display: flex; flex-direction: column; gap: 1.2rem; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+  /* ── HEADER MARCA ──────────────────────────── */
+  .marca {
+    display: flex; flex-direction: column; align-items: center; gap: .25rem;
+    padding: 1.5rem 1.5rem 1rem;
+    background: var(--bordo);
+    border-radius: 16px 16px 0 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .marca::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: var(--dorado);
+  }
+  .marca-titulo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem; font-weight: 900;
+    color: #fff; letter-spacing: -.5px; text-align: center;
+  }
+  .marca-sub {
+    font-size: .8rem; font-weight: 500; color: var(--crema2);
+    letter-spacing: .12em; text-transform: uppercase;
+  }
+
+  /* ── CARD BASE ─────────────────────────────── */
+  .card {
+    background: #fff;
+    border-radius: 0 0 16px 16px;
+    padding: 1.8rem 1.8rem 1.6rem;
+    box-shadow: 0 4px 24px rgba(107,28,43,.10);
+  }
+
+  /* ── PANTALLA INICIO ───────────────────────── */
+  #screen-inicio .card {
+    display: flex; flex-direction: column; gap: 1.4rem;
+  }
+  .reglas {
+    display: grid; grid-template-columns: 1fr 1fr; gap: .75rem;
+  }
+  .regla {
+    background: var(--crema); border-radius: 10px; padding: .9rem;
+    display: flex; flex-direction: column; gap: .2rem;
+  }
+  .regla-num {
+    font-size: 1.5rem; font-weight: 700; color: var(--bordo);
+    font-family: 'Playfair Display', serif;
+    line-height: 1;
+  }
+  .regla-txt { font-size: .82rem; color: var(--gris); }
+
+  label.field-label {
+    font-size: .8rem; font-weight: 600; color: var(--gris);
+    letter-spacing: .06em; text-transform: uppercase;
+    display: block; margin-bottom: .4rem;
+  }
+  input[type="text"] {
+    width: 100%; padding: .75rem 1rem;
+    border: 2px solid var(--crema3);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem; color: var(--negro);
+    background: var(--crema);
+    transition: border-color .2s;
+    outline: none;
+  }
+  input[type="text"]:focus { border-color: var(--bordo); background: #fff; }
+
+  .btn-primary {
+    width: 100%; padding: 1rem;
+    background: var(--bordo);
+    color: #fff;
+    border: none; border-radius: 10px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; font-weight: 700;
+    cursor: pointer; letter-spacing: .02em;
+    transition: background .2s, transform .1s;
+  }
+  .btn-primary:hover { background: var(--bordo2); }
+  .btn-primary:active { transform: scale(.98); }
+  .btn-primary:disabled { background: var(--crema3); color: var(--gris); cursor: not-allowed; }
+
+  /* ── PANTALLA QUIZ ─────────────────────────── */
+  #screen-quiz .card {
+    display: flex; flex-direction: column; gap: 1.2rem; border-radius: 0 0 16px 16px;
+  }
+
+  /* Timer bar */
+  .timer-wrap {
+    display: flex; align-items: center; gap: .75rem;
+  }
+  .timer-bar-bg {
+    flex: 1; height: 10px; background: var(--crema2);
+    border-radius: 99px; overflow: hidden;
+  }
+  .timer-bar {
+    height: 100%; background: var(--dorado);
+    border-radius: 99px;
+    transition: width .9s linear, background .3s;
+    width: 100%;
+  }
+  .timer-bar.danger { background: var(--err); }
+  .timer-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700; color: var(--bordo);
+    min-width: 2ch; text-align: right;
+  }
+  .timer-num.danger { color: var(--err); }
+
+  .progreso {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: .82rem; color: var(--gris); font-weight: 500;
+  }
+  .progreso-dots { display: flex; gap: 4px; }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--crema3);
+    transition: background .3s;
+  }
+  .dot.done { background: var(--dorado); }
+  .dot.current { background: var(--bordo); }
+
+  .pregunta-num {
+    font-size: .78rem; font-weight: 600; color: var(--dorado2);
+    text-transform: uppercase; letter-spacing: .1em;
+  }
+  .pregunta-txt {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem; font-weight: 700; line-height: 1.45;
+    color: var(--negro);
+  }
+
+  .opciones { display: flex; flex-direction: column; gap: .6rem; }
+  .opcion {
+    padding: .85rem 1.1rem;
+    border: 2px solid var(--crema3);
+    border-radius: 10px;
+    background: var(--crema);
+    cursor: pointer;
+    font-size: .93rem; color: var(--negro);
+    display: flex; align-items: center; gap: .75rem;
+    transition: border-color .15s, background .15s, transform .1s;
+    position: relative;
+  }
+  .opcion:hover:not(.disabled) {
+    border-color: var(--bordo2); background: #fff;
+    transform: translateX(3px);
+  }
+  .opcion.disabled { cursor: default; }
+  .opcion.correcta {
+    border-color: var(--ok); background: var(--ok2);
+  }
+  .opcion.incorrecta {
+    border-color: var(--err); background: var(--err2);
+  }
+  .opcion.seleccionada.correcta { border-width: 3px; }
+  .opcion.seleccionada.incorrecta { border-width: 3px; }
+
+  .letra {
+    min-width: 24px; height: 24px; border-radius: 50%;
+    background: var(--crema3);
+    font-size: .75rem; font-weight: 700; color: var(--gris);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: background .15s, color .15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .opcion.correcta .letra { background: var(--ok); color: #fff; }
+  .opcion.incorrecta .letra { background: var(--err); color: #fff; }
+
+  .feedback-msg {
+    padding: .8rem 1rem;
+    border-radius: 10px;
+    font-size: .88rem; font-weight: 500;
+    display: none;
+  }
+  .feedback-msg.show { display: block; }
+  .feedback-msg.ok { background: var(--ok2); color: var(--ok); }
+  .feedback-msg.err { background: var(--err2); color: var(--err); }
+
+  .pts-flash {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem; font-weight: 900; color: var(--dorado);
+    pointer-events: none; opacity: 0;
+    text-shadow: 0 2px 20px rgba(0,0,0,.15);
+    transition: none;
+  }
+  .pts-flash.show {
+    animation: ptsPop .7s ease forwards;
+  }
+  @keyframes ptsPop {
+    0%   { opacity: 0; transform: translate(-50%,-50%) scale(.6); }
+    30%  { opacity: 1; transform: translate(-50%,-50%) scale(1.15); }
+    70%  { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%,-70%) scale(.9); }
+  }
+
+  /* ── PANTALLA RESULTADO ────────────────────── */
+  #screen-resultado .card {
+    display: flex; flex-direction: column; gap: 1.4rem; align-items: center;
+  }
+  .resultado-icono {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: var(--bordo); display: flex; align-items: center; justify-content: center;
+    font-size: 2.2rem;
+  }
+  .resultado-puntaje {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem; font-weight: 900; color: var(--bordo);
+    line-height: 1;
+  }
+  .resultado-label { font-size: .85rem; color: var(--gris); font-weight: 500; }
+  .resultado-detalle {
+    width: 100%;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: .6rem;
+  }
+  .det-item {
+    background: var(--crema); border-radius: 10px;
+    padding: .8rem; text-align: center;
+  }
+  .det-item strong {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700; color: var(--bordo);
+    display: block;
+  }
+  .det-item span { font-size: .78rem; color: var(--gris); }
+
+  .estado-envio {
+    font-size: .85rem; color: var(--gris); text-align: center;
+    min-height: 1.2em;
+  }
+  .estado-envio.ok { color: var(--ok); }
+  .estado-envio.err { color: var(--err); }
+
+  /* ── PANTALLA RANKING ──────────────────────── */
+  #screen-ranking .card {
+    display: flex; flex-direction: column; gap: 1rem;
+  }
+  .ranking-titulo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem; font-weight: 700; color: var(--bordo);
+    text-align: center;
+  }
+  .ranking-item {
+    display: flex; align-items: center; gap: .8rem;
+    padding: .7rem 1rem; background: var(--crema);
+    border-radius: 10px;
+  }
+  .ranking-pos {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem; font-weight: 700; color: var(--dorado);
+    min-width: 1.8rem; text-align: center;
+  }
+  .ranking-nombre { flex: 1; font-size: .9rem; font-weight: 500; }
+  .ranking-pts { font-size: .9rem; font-weight: 700; color: var(--bordo); }
+
+  @media (max-width: 500px) {
+    .marca-titulo { font-size: 1.3rem; }
+    .card { padding: 1.3rem; }
+    .reglas { grid-template-columns: 1fr; }
+    .pregunta-txt { font-size: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── PANTALLA INICIO ──────────────────────── -->
+<div class="screen active" id="screen-inicio">
+  <div class="marca">
+    <div class="marca-sub">Universidad Kennedy · Derecho Administrativo</div>
+    <div class="marca-titulo">Quiz · Clase 1</div>
+  </div>
+  <div class="card">
+    <div class="reglas">
+      <div class="regla"><span class="regla-num">10</span><span class="regla-txt">preguntas aleatorias</span></div>
+      <div class="regla"><span class="regla-num">45"</span><span class="regla-txt">por pregunta</span></div>
+      <div class="regla"><span class="regla-num">★</span><span class="regla-txt">Respondé rápido: más puntos</span></div>
+      <div class="regla"><span class="regla-num">4</span><span class="regla-txt">opciones por pregunta</span></div>
+    </div>
+    <div>
+      <label class="field-label" for="input-nombre">Tu nombre</label>
+      <input type="text" id="input-nombre" placeholder="Ingresá tu nombre" autocomplete="off" maxlength="60">
+    </div>
+    <button class="btn-primary" id="btn-empezar">Empezar quiz</button>
+  </div>
+</div>
+
+<!-- ── PANTALLA QUIZ ─────────────────────────── -->
+<div class="screen" id="screen-quiz">
+  <div class="marca">
+    <div class="marca-sub">Mg. Romei · Clase 1</div>
+    <div class="marca-titulo" id="quiz-nombre-display"></div>
+  </div>
+  <div class="card">
+    <div class="progreso">
+      <span id="prog-label">Pregunta 1 de 10</span>
+      <div class="progreso-dots" id="prog-dots"></div>
+    </div>
+    <div class="timer-wrap">
+      <div class="timer-bar-bg"><div class="timer-bar" id="timer-bar"></div></div>
+      <div class="timer-num" id="timer-num">45</div>
+    </div>
+    <div class="pregunta-num" id="preg-num">Pregunta 1</div>
+    <div class="pregunta-txt" id="preg-txt"></div>
+    <div class="opciones" id="opciones"></div>
+    <div class="feedback-msg" id="feedback-msg"></div>
+  </div>
+</div>
+
+<!-- ── PANTALLA RESULTADO ────────────────────── -->
+<div class="screen" id="screen-resultado">
+  <div class="marca">
+    <div class="marca-sub">Resultado final</div>
+    <div class="marca-titulo" id="res-nombre"></div>
+  </div>
+  <div class="card">
+    <div class="resultado-icono">🎓</div>
+    <div>
+      <div class="resultado-puntaje" id="res-puntaje">0</div>
+      <div class="resultado-label">puntos totales</div>
+    </div>
+    <div class="resultado-detalle">
+      <div class="det-item"><strong id="res-correctas">0</strong><span>correctas</span></div>
+      <div class="det-item"><strong id="res-incorrectas">0</strong><span>incorrectas</span></div>
+      <div class="det-item"><strong id="res-tiempo">0s</strong><span>tiempo promedio</span></div>
+      <div class="det-item"><strong id="res-max">1000</strong><span>puntos posibles</span></div>
+    </div>
+    <div class="estado-envio" id="estado-envio">Enviando resultados...</div>
+    <button class="btn-primary" id="btn-reintentar" style="display:none">Reintentar envío</button>
+    <button class="btn-primary" id="btn-volver" style="background:var(--crema3);color:var(--gris);margin-top:.3rem">Volver al inicio</button>
+  </div>
+</div>
+
+<!-- Flash puntaje -->
+<div class="pts-flash" id="pts-flash">+100</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// CONFIGURACIÓN — editá solo esta sección
+// ══════════════════════════════════════════════════════════════
+const CONFIG = {
+  SHEETS_URL: 'https://script.google.com/macros/s/TU_DEPLOYMENT_ID_AQUI/exec',
+  SEGUNDOS: 45,
+  PREGUNTAS_POR_QUIZ: 10,
+  PTS_MAX_POR_PREGUNTA: 100,
+};
+
+// ══════════════════════════════════════════════════════════════
+// BANCO DE PREGUNTAS — Clase 1: Poder, función administrativa y control
+// ══════════════════════════════════════════════════════════════
+const BANCO = [
+  {
+    texto: "¿Qué autor define al Derecho Administrativo como la rama del derecho público que estudia el ejercicio de la función administrativa y la protección judicial existente contra ella?",
+    opciones: ["Carlos Balbín","Agustín Gordillo","Juan Francisco Linares","Miguel Marienhoff"],
+    correcta: 1,
+    feedback: "Gordillo define así el DA en su Tratado, T. I, Cap. I (FDA, 2017)."
+  },
+  {
+    texto: "Según el criterio residual, la función administrativa es:",
+    opciones: [
+      "Todo lo que hace el Poder Ejecutivo",
+      "La actividad concreta orientada al interés público",
+      "Todo lo que no es legislar ni juzgar",
+      "La actividad reglamentaria del Presidente"
+    ],
+    correcta: 2,
+    feedback: "El criterio residual define la función administrativa por exclusión: ni legislativa ni jurisdiccional. Es el criterio que sigue la LPA (Ley 19.549). Balbín, T. I, p. 79."
+  },
+  {
+    texto: "¿Qué principio establece que el Estado sólo puede hacer lo que la ley expresamente le autoriza?",
+    opciones: ["Principio de reserva legal","Principio de legalidad","Principio de proporcionalidad","Principio de subsidiariedad"],
+    correcta: 1,
+    feedback: "El principio de legalidad (vinculación positiva a la ley) es opuesto al de autonomía de la voluntad del derecho privado. Art. 19 CN y art. 7 inc. a) LPA."
+  },
+  {
+    texto: "En el fallo 'Fernández Arias c/ Poggio' (CSJN, 1960), la Corte estableció que los tribunales administrativos son constitucionales, siempre que:",
+    opciones: [
+      "No impongan sanciones pecuniarias",
+      "Sus decisiones queden sujetas a revisión judicial suficiente",
+      "Actúen exclusivamente en materia laboral",
+      "Sean creados por ley formal del Congreso"
+    ],
+    correcta: 1,
+    feedback: "La doctrina del 'control judicial suficiente' nace en Fernández Arias (Fallos: 247:646, 1960): el Estado puede ejercer funciones cuasijurisdiccionales, pero con revisión judicial real y no ilusoria."
+  },
+  {
+    texto: "Las facultades discrecionales de la Administración son aquellas en que:",
+    opciones: [
+      "La ley determina exactamente cómo actuar",
+      "El Estado actúa sin ningún límite normativo",
+      "La ley otorga un margen de decisión entre opciones igualmente válidas",
+      "El juez puede sustituir la decisión administrativa"
+    ],
+    correcta: 2,
+    feedback: "En las facultades discrecionales, la ley le otorga al Estado un margen de elección. Pero eso no equivale a arbitrariedad: siempre hay una solución justa controlable (Linares)."
+  },
+  {
+    texto: "Según Juan Francisco Linares, cuando la ley usa conceptos jurídicos indeterminados como 'interés público' o 'necesidad':",
+    opciones: [
+      "El juez no puede controlar la decisión administrativa",
+      "Existe siempre una única solución justa que el juez puede controlar",
+      "La Administración tiene discrecionalidad absoluta",
+      "Solo el Congreso puede definir el contenido del concepto"
+    ],
+    correcta: 1,
+    feedback: "Linares (Poder discrecional administrativo, 1958) sostiene que los conceptos jurídicos indeterminados tienen una única solución justa, lo que habilita el control judicial aún sobre actos discrecionales."
+  },
+  {
+    texto: "En 'Ángel Estrada y Cía. S.A. c/ Secretaría de Energía' (CSJN, 2005), la Corte admitió la función cuasijurisdiccional del ENRE porque:",
+    opciones: [
+      "El ENRE es un órgano del Poder Judicial",
+      "La habilitación surgía de ley formal y existía control judicial suficiente",
+      "La empresa había renunciado a la vía judicial",
+      "Se trataba de una materia excluida del control judicial"
+    ],
+    correcta: 1,
+    feedback: "Ángel Estrada (Fallos: 328:651) aplica Fernández Arias más la teoría de Linares: la función cuasijurisdiccional del ente regulador es válida si hay ley habilitante y control judicial real. Fallos: 328:651."
+  },
+  {
+    texto: "¿Cuál es la diferencia entre un reglamento ejecutivo y un Decreto de Necesidad y Urgencia (DNU)?",
+    opciones: [
+      "El reglamento ejecutivo no requiere ley previa; el DNU sí",
+      "El DNU puede regular materia tributaria; el reglamento ejecutivo no",
+      "El reglamento ejecutivo reglamenta leyes; el DNU se dicta ante circunstancias excepcionales sin trámite ordinario",
+      "No hay diferencias constitucionales entre ambos"
+    ],
+    correcta: 2,
+    feedback: "El reglamento ejecutivo (art. 99 inc. 2 CN) reglamenta leyes sin alterarlas. El DNU (art. 99 inc. 3 CN) se dicta ante circunstancias excepcionales y está prohibido en materia penal, tributaria, electoral y de partidos políticos."
+  },
+  {
+    texto: "En 'Consumidores Argentinos c/ PEN' (CSJN, 2010), la Corte declaró inconstitucional un DNU porque:",
+    opciones: [
+      "Regulaba materia tributaria, expresamente prohibida",
+      "No existían circunstancias excepcionales acreditadas y afectó materia de reserva legal",
+      "Fue dictado sin refrendo ministerial",
+      "El Congreso lo había rechazado expresamente"
+    ],
+    correcta: 1,
+    feedback: "En Consumidores Argentinos (Fallos: 333:633) la Corte precisó que la emergencia no habilita ilimitadamente el DNU: deben existir circunstancias excepcionales reales y no puede invadir materias de reserva legal del Congreso."
+  },
+  {
+    texto: "El 'bloque de constitucionalidad federal' que sistematiza Gordillo está integrado por:",
+    opciones: [
+      "La Constitución Nacional y las leyes del Congreso",
+      "La Constitución Nacional y los tratados de DDHH con jerarquía constitucional (art. 75 inc. 22 CN)",
+      "Los tratados internacionales, las leyes y los reglamentos",
+      "Solo la Constitución Nacional de 1853/60"
+    ],
+    correcta: 1,
+    feedback: "Tras la reforma de 1994, los tratados de DDHH del art. 75 inc. 22 CN tienen jerarquía constitucional. Gordillo los integra junto a la CN en el 'bloque de constitucionalidad federal', norma de normas del DA argentino."
+  },
+  {
+    texto: "Un funcionario público dicta un acto que viola la Convención Americana de DDHH pero respeta una ley nacional. Según el control de convencionalidad (caso 'Mazzeo', CSJN 2007):",
+    opciones: [
+      "El acto es válido porque respeta la ley nacional",
+      "Solo el juez federal puede declarar la inconvencionalidad",
+      "El funcionario debe inaplicar la ley y respetar la Convención",
+      "El control de convencionalidad es facultativo para la Administración"
+    ],
+    correcta: 2,
+    feedback: "Mazzeo (Fallos: 330:3248) extendió el control de convencionalidad a todos los poderes del Estado. La Administración está obligada a inaplicar normas internas contrarias a la CADH, incluso sin declaración judicial previa."
+  },
+  {
+    texto: "La tensión estructural central del Derecho Administrativo es:",
+    opciones: [
+      "Entre el Poder Ejecutivo y el Poder Judicial",
+      "Entre el poder del Estado que necesita actuar y los derechos del individuo que necesita garantías",
+      "Entre el derecho público y el derecho privado",
+      "Entre la ley y el reglamento"
+    ],
+    correcta: 1,
+    feedback: "Esta tensión (poder vs. derechos) explica la existencia del DA: habilita el ejercicio del poder estatal pero lo somete a legalidad, debido proceso y control judicial. Es el núcleo de la disciplina."
+  },
+  {
+    texto: "El criterio orgánico para definir la función administrativa sostiene que:",
+    opciones: [
+      "Es función administrativa toda actividad orientada al interés público",
+      "Es función administrativa todo lo que no es legislar ni juzgar",
+      "Es función administrativa todo lo que hace el Poder Ejecutivo",
+      "Es función administrativa la actividad concreta y continua del Estado"
+    ],
+    correcta: 2,
+    feedback: "El criterio orgánico o subjetivo define la función administrativa por el órgano que la ejerce. Su límite: ignora que el PL y el PJ también realizan actos de naturaleza administrativa (administran personal, presupuesto, etc.)."
+  },
+  {
+    texto: "Las facultades regladas se caracterizan porque:",
+    opciones: [
+      "Otorgan al funcionario libertad de elección entre opciones legítimas",
+      "La ley determina exactamente cómo debe actuar el Estado sin margen de elección",
+      "Solo el Presidente puede ejercerlas",
+      "No están sujetas a control judicial"
+    ],
+    correcta: 1,
+    feedback: "En las facultades regladas, la ley predetermina la conducta del Estado: verificado el presupuesto de hecho, la consecuencia jurídica es única. El control judicial sobre ellas es pleno."
+  },
+  {
+    texto: "¿Cuál de los siguientes es un ejemplo de ejercicio de la función administrativa?",
+    opciones: [
+      "El Congreso sanciona la Ley de Presupuesto",
+      "La Corte Suprema dicta sentencia en un recurso extraordinario",
+      "El SENASA impone una multa a un frigorífico por incumplimiento sanitario",
+      "El Senado presta acuerdo para la designación de un juez"
+    ],
+    correcta: 2,
+    feedback: "La multa del SENASA es un acto administrativo: actividad concreta, inmediata, orientada al interés público (salud alimentaria). Las otras opciones corresponden a función legislativa o jurisdiccional."
+  },
+  {
+    texto: "Según el fallo 'Ekmekdjian c/ Sofovich' (CSJN, 1992), los tratados internacionales:",
+    opciones: [
+      "Tienen la misma jerarquía que las leyes nacionales",
+      "Tienen primacía sobre las leyes internas en virtud del art. 27 de la Convención de Viena",
+      "Solo obligan al Poder Judicial, no a la Administración",
+      "Requieren reglamentación legal para ser aplicables"
+    ],
+    correcta: 1,
+    feedback: "Ekmekdjian (Fallos: 315:1492) estableció la primacía de los tratados sobre las leyes internas, con base en el art. 27 de la Convención de Viena. Fue el antecedente directo de la reforma constitucional de 1994."
+  },
+  {
+    texto: "El control judicial suficiente establecido en 'Fernández Arias' implica que el juez:",
+    opciones: [
+      "Solo puede revisar vicios formales del acto administrativo",
+      "Puede revisar hechos y derecho de forma real y no meramente formal",
+      "Debe sustituir la decisión administrativa por la suya",
+      "Solo puede anular el acto, no modificarlo"
+    ],
+    correcta: 1,
+    feedback: "El control judicial suficiente exige que el juez pueda revisar tanto los hechos como el derecho aplicado, no apenas constatar que no haya vicios de forma. Una revisión meramente formal viola la garantía del art. 18 CN."
+  },
+  {
+    texto: "La potestad reglamentaria del Poder Ejecutivo para dictar DNU está expresamente prohibida en materia:",
+    opciones: [
+      "Ambiental, laboral y de seguridad social",
+      "Penal, tributaria, electoral y de partidos políticos",
+      "Económica, financiera y cambiaria",
+      "Civil, comercial y de derecho privado en general"
+    ],
+    correcta: 1,
+    feedback: "El art. 99 inc. 3 CN establece expresamente que los DNU no pueden regular materia penal, tributaria, electoral ni de partidos políticos. Consumidores Argentinos (2010) reafirmó que estas prohibiciones son de interpretación estricta."
+  },
+  {
+    texto: "La diferencia entre el derecho privado y el derecho administrativo respecto del principio de legalidad es:",
+    opciones: [
+      "En derecho privado todo está prohibido salvo lo permitido; en DA todo está permitido salvo lo prohibido",
+      "En derecho privado los particulares pueden hacer todo lo no prohibido; en DA el Estado solo puede hacer lo expresamente autorizado",
+      "No existe diferencia: ambos aplican el mismo principio de autonomía de la voluntad",
+      "En DA el Estado puede hacer lo no prohibido, igual que los particulares"
+    ],
+    correcta: 1,
+    feedback: "Esta es la diferencia axial: los particulares (derecho privado) gozan de autonomía de la voluntad; el Estado (DA) solo puede actuar dentro de la habilitación legal expresa. Art. 19 CN y art. 7 LPA."
+  },
+  {
+    texto: "¿Cuál es la función de la Administración Pública según el criterio material u objetivo?",
+    opciones: [
+      "Toda actividad que realiza el Poder Ejecutivo",
+      "Actividad concreta, continua e inmediata para la satisfacción del interés público, con prescindencia del órgano que la realiza",
+      "La actividad exclusiva del Jefe de Gabinete y los Ministros",
+      "La emisión de actos administrativos de alcance general"
+    ],
+    correcta: 1,
+    feedback: "El criterio material define la función administrativa por su contenido: concreta, continua, inmediata, orientada al interés público. No importa qué poder la ejerce. Gordillo, Tratado T. I, Cap. XI."
+  },
+];
+
+// ══════════════════════════════════════════════════════════════
+// ESTADO
+// ══════════════════════════════════════════════════════════════
+let estado = {
+  nombre: '',
+  preguntasQuiz: [],
+  indice: 0,
+  puntaje: 0,
+  correctas: 0,
+  tiemposRespuesta: [],
+  respondida: false,
+  timerInterval: null,
+  timerSegundos: CONFIG.SEGUNDOS,
+  tiempoInicioPregunta: null,
+};
+
+// ══════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function mostrar(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function calcularPuntos(segsTranscurridos) {
+  const fraccion = Math.max(0, (CONFIG.SEGUNDOS - segsTranscurridos) / CONFIG.SEGUNDOS);
+  return Math.round(CONFIG.PTS_MAX_POR_PREGUNTA * fraccion);
+}
+
+// ══════════════════════════════════════════════════════════════
+// INICIO
+// ══════════════════════════════════════════════════════════════
+document.getElementById('btn-empezar').addEventListener('click', () => {
+  const nombre = document.getElementById('input-nombre').value.trim();
+  if (!nombre) { document.getElementById('input-nombre').focus(); return; }
+  estado.nombre = nombre;
+  estado.preguntasQuiz = shuffle(BANCO).slice(0, CONFIG.PREGUNTAS_POR_QUIZ);
+  estado.indice = 0;
+  estado.puntaje = 0;
+  estado.correctas = 0;
+  estado.tiemposRespuesta = [];
+  document.getElementById('quiz-nombre-display').textContent = nombre;
+  mostrar('screen-quiz');
+  construirDots();
+  cargarPregunta();
+});
+
+document.getElementById('input-nombre').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btn-empezar').click();
+});
+
+// ══════════════════════════════════════════════════════════════
+// QUIZ
+// ══════════════════════════════════════════════════════════════
+function construirDots() {
+  const cont = document.getElementById('prog-dots');
+  cont.innerHTML = '';
+  for (let i = 0; i < CONFIG.PREGUNTAS_POR_QUIZ; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' current' : '');
+    d.id = `dot-${i}`;
+    cont.appendChild(d);
+  }
+}
+
+function actualizarDots() {
+  for (let i = 0; i < CONFIG.PREGUNTAS_POR_QUIZ; i++) {
+    const d = document.getElementById(`dot-${i}`);
+    if (!d) continue;
+    d.className = 'dot' + (i < estado.indice ? ' done' : i === estado.indice ? ' current' : '');
+  }
+}
+
+function cargarPregunta() {
+  const q = estado.preguntasQuiz[estado.indice];
+  estado.respondida = false;
+  estado.tiempoInicioPregunta = Date.now();
+
+  document.getElementById('prog-label').textContent = `Pregunta ${estado.indice + 1} de ${CONFIG.PREGUNTAS_POR_QUIZ}`;
+  document.getElementById('preg-num').textContent = `Pregunta ${estado.indice + 1}`;
+  document.getElementById('preg-txt').textContent = q.texto;
+  document.getElementById('feedback-msg').className = 'feedback-msg';
+
+  actualizarDots();
+
+  // Opciones (mezcladas con índice de correcta rastreado)
+  const letras = ['A', 'B', 'C', 'D'];
+  const orden = shuffle([0, 1, 2, 3]);
+  const opcCont = document.getElementById('opciones');
+  opcCont.innerHTML = '';
+  orden.forEach((origIdx, pos) => {
+    const btn = document.createElement('div');
+    btn.className = 'opcion';
+    btn.dataset.orig = origIdx;
+    btn.innerHTML = `<span class="letra">${letras[pos]}</span><span>${q.opciones[origIdx]}</span>`;
+    btn.addEventListener('click', () => responder(btn, origIdx === q.correcta, origIdx));
+    opcCont.appendChild(btn);
+  });
+
+  iniciarTimer();
+}
+
+function iniciarTimer() {
+  clearInterval(estado.timerInterval);
+  estado.timerSegundos = CONFIG.SEGUNDOS;
+  const bar = document.getElementById('timer-bar');
+  const num = document.getElementById('timer-num');
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  bar.className = 'timer-bar';
+  num.className = 'timer-num';
+  num.textContent = CONFIG.SEGUNDOS;
+
+  requestAnimationFrame(() => {
+    bar.style.transition = `width ${CONFIG.SEGUNDOS}s linear`;
+    bar.style.width = '0%';
+  });
+
+  estado.timerInterval = setInterval(() => {
+    estado.timerSegundos--;
+    num.textContent = estado.timerSegundos;
+    if (estado.timerSegundos <= 10) {
+      bar.className = 'timer-bar danger';
+      num.className = 'timer-num danger';
+    }
+    if (estado.timerSegundos <= 0) {
+      clearInterval(estado.timerInterval);
+      if (!estado.respondida) tiempoAgotado();
+    }
+  }, 1000);
+}
+
+function responder(btnEl, esCorrecta, origIdx) {
+  if (estado.respondida) return;
+  estado.respondida = true;
+  clearInterval(estado.timerInterval);
+
+  const segsTranscurridos = (Date.now() - estado.tiempoInicioPregunta) / 1000;
+  estado.tiemposRespuesta.push(segsTranscurridos);
+
+  const q = estado.preguntasQuiz[estado.indice];
+  const todas = document.querySelectorAll('.opcion');
+  todas.forEach(b => {
+    b.classList.add('disabled');
+    const orig = parseInt(b.dataset.orig);
+    if (orig === q.correcta) b.classList.add('correcta');
+  });
+
+  const fb = document.getElementById('feedback-msg');
+
+  if (esCorrecta) {
+    btnEl.classList.add('seleccionada', 'correcta');
+    const pts = calcularPuntos(segsTranscurridos);
+    estado.puntaje += pts;
+    estado.correctas++;
+    fb.className = 'feedback-msg ok show';
+    fb.textContent = `✓ Correcto! +${pts} puntos. ${q.feedback}`;
+    flashPuntos(`+${pts}`);
+  } else {
+    btnEl.classList.add('seleccionada', 'incorrecta');
+    fb.className = 'feedback-msg err show';
+    fb.textContent = `✗ Incorrecto. ${q.feedback}`;
+  }
+
+  setTimeout(siguientePregunta, 2800);
+}
+
+function tiempoAgotado() {
+  estado.respondida = true;
+  estado.tiemposRespuesta.push(CONFIG.SEGUNDOS);
+  const q = estado.preguntasQuiz[estado.indice];
+  const todas = document.querySelectorAll('.opcion');
+  todas.forEach(b => {
+    b.classList.add('disabled');
+    if (parseInt(b.dataset.orig) === q.correcta) b.classList.add('correcta');
+  });
+  const fb = document.getElementById('feedback-msg');
+  fb.className = 'feedback-msg err show';
+  fb.textContent = `⏱ Tiempo agotado. ${q.feedback}`;
+  setTimeout(siguientePregunta, 2800);
+}
+
+function siguientePregunta() {
+  estado.indice++;
+  if (estado.indice >= CONFIG.PREGUNTAS_POR_QUIZ) {
+    mostrarResultado();
+  } else {
+    cargarPregunta();
+  }
+}
+
+function flashPuntos(txt) {
+  const el = document.getElementById('pts-flash');
+  el.textContent = txt;
+  el.className = 'pts-flash show';
+  setTimeout(() => { el.className = 'pts-flash'; }, 750);
+}
+
+// ══════════════════════════════════════════════════════════════
+// RESULTADO
+// ══════════════════════════════════════════════════════════════
+function mostrarResultado() {
+  mostrar('screen-resultado');
+  document.getElementById('res-nombre').textContent = estado.nombre;
+  document.getElementById('res-puntaje').textContent = estado.puntaje;
+  document.getElementById('res-correctas').textContent = estado.correctas;
+  document.getElementById('res-incorrectas').textContent = CONFIG.PREGUNTAS_POR_QUIZ - estado.correctas;
+  const promedio = estado.tiemposRespuesta.length
+    ? (estado.tiemposRespuesta.reduce((a, b) => a + b, 0) / estado.tiemposRespuesta.length).toFixed(1)
+    : 0;
+  document.getElementById('res-tiempo').textContent = `${promedio}s`;
+  document.getElementById('res-max').textContent = CONFIG.PREGUNTAS_POR_QUIZ * CONFIG.PTS_MAX_POR_PREGUNTA;
+
+  enviarResultado();
+}
+
+async function enviarResultado() {
+  const est = document.getElementById('estado-envio');
+  est.className = 'estado-envio';
+  est.textContent = 'Enviando resultados...';
+
+  const payload = {
+    nombre: estado.nombre,
+    puntaje: estado.puntaje,
+    correctas: estado.correctas,
+    total: CONFIG.PREGUNTAS_POR_QUIZ,
+    tiempoPromedio: parseFloat(
+      (estado.tiemposRespuesta.reduce((a, b) => a + b, 0) / estado.tiemposRespuesta.length).toFixed(1)
+    ),
+    fecha: new Date().toLocaleString('es-AR'),
+    clase: 'Clase 1 - Poder, función administrativa y control',
+  };
+
+  // Si no hay URL configurada, avisamos
+  if (CONFIG.SHEETS_URL.includes('https://script.google.com/macros/s/AKfycbyvETZZFVvylUvw1cMFt-6ln1y99vwUzUg0ROAF49tUx5Ec9wKRi2RowSE1-traQwuW6Q/exec')) {
+    est.className = 'estado-envio err';
+    est.textContent = '⚠ Configurá el SHEETS_URL en el código para registrar resultados.';
+    document.getElementById('btn-reintentar').style.display = 'none';
+    return;
+  }
+
+  try {
+    await fetch(CONFIG.SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    est.className = 'estado-envio ok';
+    est.textContent = '✓ Resultado registrado correctamente.';
+    document.getElementById('btn-reintentar').style.display = 'none';
+  } catch (err) {
+    est.className = 'estado-envio err';
+    est.textContent = '✗ No se pudo enviar. Verificá tu conexión.';
+    document.getElementById('btn-reintentar').style.display = 'block';
+  }
+}
+
+document.getElementById('btn-reintentar').addEventListener('click', enviarResultado);
+
+document.getElementById('btn-volver').addEventListener('click', () => {
+  document.getElementById('input-nombre').value = '';
+  mostrar('screen-inicio');
+});
+</script>
+</body>
+</html>
